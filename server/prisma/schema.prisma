@@ -1,0 +1,307 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+//////////////////////////
+// ENUMS
+//////////////////////////
+
+enum Role {
+  Student
+  Faculty
+  Admin
+}
+
+enum Gender {
+  Male
+  Female
+  Other
+}
+
+enum SubmissionStatus {
+  Submitted
+  Not_Submitted
+}
+
+enum AttendanceStatus {
+  Present
+  Absent
+  Leave
+}
+
+enum PaymentStatus {
+  Paid
+  Pending
+  Partial
+}
+
+enum LeaveStatus {
+  Pending
+  Approved
+  Rejected
+}
+
+enum SeatingType {
+  Classroom
+  Lab
+}
+
+enum DayOfWeek {
+  Monday
+  Tuesday
+  Wednesday
+  Thursday
+  Friday
+  Saturday
+}
+
+//////////////////////////
+// USERS
+//////////////////////////
+
+model Users {
+  user_id       Int      @id @default(autoincrement())
+  username      String   @unique
+  password_hash String
+  email         String?  @unique
+  role          Role
+  created_at    DateTime @default(now())
+
+  student       Students?
+  faculty       Faculty?
+  leaveRequests Leave_Requests[]
+  sentMessages  Messages[] @relation("Sender")
+  receivedMessages Messages[] @relation("Receiver")
+}
+
+//////////////////////////
+// PARENTS
+//////////////////////////
+
+model Parents {
+  parent_id           Int     @id @default(autoincrement())
+  father_name         String?
+  mother_name         String?
+  contact_no          String?
+  address             String?
+  father_adhar_photo  String?
+  mother_adhar_photo  String?
+  father_email_id     String?
+  mother_email_id     String?
+
+  students Students[]
+}
+
+//////////////////////////
+// DIVISIONS
+//////////////////////////
+
+model Divisions {
+  division_id    Int     @id @default(autoincrement())
+  division_name  String?
+  no_of_students Int     @default(0)
+
+  faculty_id Int?
+  faculty    Faculty? @relation(fields: [faculty_id], references: [faculty_id])
+
+  students  Students[]
+  timetable Timetable[]
+}
+
+//////////////////////////
+// STUDENTS
+//////////////////////////
+
+model Students {
+  student_id      Int      @id @default(autoincrement())
+
+  user_id         Int?     @unique
+  parent_id       Int?
+  division_id     Int?
+
+  first_name      String?
+  last_name       String?
+  date_of_birth   DateTime?
+  enrollment_date DateTime?
+  contact_no      String?
+  admission_year  Int?
+  gender          Gender?
+  height          Float?
+  weight          Float?
+  blood_group     String?
+  email_id        String?
+  adhar_photo     String?
+  result_12_photo String?
+  signature_photo String?
+
+  user     Users?     @relation(fields: [user_id], references: [user_id])
+  parent   Parents?   @relation(fields: [parent_id], references: [parent_id])
+  division Divisions? @relation(fields: [division_id], references: [division_id])
+
+  attendance Attendance[]
+  fees       Fees[]
+  results    Results[]
+  assignments Assignments[]
+  mentoring  Mentoring[]
+  seating    Seating_Arrangement[]
+}
+
+//////////////////////////
+// FACULTY
+//////////////////////////
+
+model Faculty {
+  faculty_id     Int     @id @default(autoincrement())
+  user_id        Int?    @unique
+  designation    String?
+  department     String?
+  qualification  String?
+  contact_no     String?
+  seating_arrangement SeatingType?
+
+  user        Users? @relation(fields: [user_id], references: [user_id])
+  divisions   Divisions[]
+  assignments Assignments[]
+  mentoring   Mentoring[]
+  timetable   Timetable[]
+}
+
+//////////////////////////
+// ASSIGNMENTS
+//////////////////////////
+
+model Assignments {
+  assignment_id    Int      @id @default(autoincrement())
+  faculty_id       Int?
+  student_id       Int?
+  title            String?
+  description      String?
+  due_date         DateTime?
+  submission_status SubmissionStatus? @default(Not_Submitted)
+
+  faculty Faculty? @relation(fields: [faculty_id], references: [faculty_id])
+  student Students? @relation(fields: [student_id], references: [student_id])
+}
+
+//////////////////////////
+// ATTENDANCE
+//////////////////////////
+
+model Attendance {
+  attendance_id Int      @id @default(autoincrement())
+  student_id    Int?
+  date          DateTime?
+  status        AttendanceStatus?
+
+  student Students? @relation(fields: [student_id], references: [student_id])
+}
+
+//////////////////////////
+// FEES
+//////////////////////////
+
+model Fees {
+  fee_id         Int      @id @default(autoincrement())
+  student_id     Int?
+  total_amount   Decimal? @db.Decimal(10,2)
+  paid_amount    Decimal? @db.Decimal(10,2)
+  payment_status PaymentStatus?
+
+  student Students? @relation(fields: [student_id], references: [student_id])
+}
+
+//////////////////////////
+// RESULTS
+//////////////////////////
+
+model Results {
+  result_id      Int      @id @default(autoincrement())
+  student_id     Int?
+  subject_name   String?
+  marks_obtained Decimal? @db.Decimal(5,2)
+  total_marks    Decimal? @db.Decimal(5,2)
+  grade          String?
+
+  student Students? @relation(fields: [student_id], references: [student_id])
+}
+
+//////////////////////////
+// MENTORING
+//////////////////////////
+
+model Mentoring {
+  mentoring_id Int      @id @default(autoincrement())
+  faculty_id   Int?
+  student_id   Int?
+  meeting_date DateTime?
+  notes        String?
+
+  faculty Faculty? @relation(fields: [faculty_id], references: [faculty_id])
+  student Students? @relation(fields: [student_id], references: [student_id])
+}
+
+//////////////////////////
+// MESSAGES
+//////////////////////////
+
+model Messages {
+  message_id  Int      @id @default(autoincrement())
+  sender_id   Int?
+  receiver_id Int?
+  message_text String?
+  sent_at     DateTime @default(now())
+
+  sender   Users? @relation("Sender", fields: [sender_id], references: [user_id])
+  receiver Users? @relation("Receiver", fields: [receiver_id], references: [user_id])
+}
+
+//////////////////////////
+// LEAVE REQUESTS
+//////////////////////////
+
+model Leave_Requests {
+  leave_id   Int         @id @default(autoincrement())
+  user_id    Int?
+  start_date DateTime?
+  end_date   DateTime?
+  reason     String?
+  status     LeaveStatus @default(Pending)
+
+  user Users? @relation(fields: [user_id], references: [user_id])
+}
+
+//////////////////////////
+// SEATING ARRANGEMENT
+//////////////////////////
+
+model Seating_Arrangement {
+  seating_id  Int     @id @default(autoincrement())
+  student_id  Int?
+  room_number String?
+  seat_number Int?
+  exam_name   String?
+
+  student Students? @relation(fields: [student_id], references: [student_id])
+}
+
+//////////////////////////
+// TIMETABLE
+//////////////////////////
+
+model Timetable {
+  timetable_id Int     @id @default(autoincrement())
+  division_id  Int?
+  faculty_id   Int?
+  subject_name String?
+  day_of_week  DayOfWeek?
+  start_time   DateTime?
+  end_time     DateTime?
+
+  division Divisions? @relation(fields: [division_id], references: [division_id])
+  faculty  Faculty?   @relation(fields: [faculty_id], references: [faculty_id])
+}
