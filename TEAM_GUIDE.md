@@ -45,18 +45,39 @@ Runs on: `http://localhost:5000`
 We use **Git Flow** branching model:
 
 ```
-main                 (Production - stable code)
-├── develop          (Staging - integration branch)
-    ├── feature/*    (Feature development)
-    ├── bugfix/*     (Bug fixes)
-    └── hotfix/*     (Emergency fixes)
+main                           (Production - stable code)
+├── develop                    (Staging - integration branch)
+│   ├── feature/*              (Feature development - merges to develop)
+│   ├── bugfix/*               (Bug fixes - merges to develop)
+│   └── hotfix/*               (Emergency fixes - merges to develop)
+│
+└── (Tags for releases)
 ```
+
+**Key Points:**
+- All feature, bugfix, and hotfix branches are **created FROM** develop
+- All changes are **merged back TO** develop via Pull Requests
+- develop branch holds the next release version
+- main branch only receives merged code from develop (stable releases)
 
 ### Branch Naming Conventions
 
-- **Feature:** `feature/student-dashboard` 
-- **Bug Fix:** `bugfix/login-issue`
-- **Hotfix:** `hotfix/critical-payment-bug`
+All branch names should follow these patterns and be created **FROM develop branch**:
+
+- **Feature:** `feature/<your-feature-name>` 
+  - Example: `feature/student-dashboard`, `feature/course-registration`
+  - Created from: `develop`
+  - Merged back to: `develop`
+
+- **Bug Fix:** `bugfix/<issue-name>`
+  - Example: `bugfix/general-fixes`, `bugfix/validation-error`
+  - Created from: `develop`
+  - Merged back to: `develop`
+
+- **Hotfix:** `hotfix/<critical-issue>`
+  - Example: `hotfix/critical-issue`, `hotfix/data-loss-bug`
+  - Created from: `develop`
+  - Merged back to: `develop`
 
 ---
 
