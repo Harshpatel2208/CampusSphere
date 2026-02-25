@@ -5,7 +5,14 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "dev:with-migration": "npx prisma migrate deploy && nodemon index.js",
+    "setup": "npm install && npx prisma migrate deploy",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "prisma:generate": "prisma generate",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:reset": "prisma migrate reset"
   },
   "keywords": [],
   "author": "",
